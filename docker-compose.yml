@@ -1,0 +1,33 @@
+version: '2'
+services:
+  db_postgis:
+    image: kartoza/postgis:latest
+    ports: 
+      - 5432:5432
+    hostname: postgis
+    volumes:
+      - ./postgresql_data:/var/lib/postgresql
+    environment:
+      - ALLOW_IP_RANGE=10.10.0.0/16
+  
+  geoserver:
+    image: kartoza/geoserver:latest
+    ports:
+      - 8080:8080
+    hostname: geoserver
+    volumes:
+      - ./geoserver_data:/opt/geoserver/data_dir
+      - ./setenv.sh:/usr/local/tomcat/bin/setenv.sh
+    links:
+      - db_postgis:db_postgis
+
+  nginx:
+    image: alpine-nginx-php
+    hostname: nginx
+    ports:
+     - 80:80
+     - 443:443
+    volumes:
+      - ./code:/var/www
+    links:
+      - geoserver:geoserver
